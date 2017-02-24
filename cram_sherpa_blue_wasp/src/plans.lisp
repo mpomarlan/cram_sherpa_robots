@@ -29,18 +29,21 @@
 
 (in-package :blue-wasp)
 
-(defmethod perform-with-pms-running ((designator desig:designator))
+(defmethod main ()
   (cpm:with-process-modules-running
-      (blue-wasp-sensors
-       helicopter:helicopter-actuators
-       robots-common:robosherlock-pm)
-    (cpl:top-level
-      (perform designator))))
-
-;; (defun search-for-victim (?where)
-;;   (perform (desig:a motion (to switch) (device camera) (state on)))
-;;   (find-victim)
-;;   (land-or-whatever))
+      (blue-wasp-sensors helicopter:helicopter-actuators robosherlock-pm)
+    (run-reference-server "blue_wasp")
+    (run-perform-server "blue_wasp")
+    (roslisp:spin-until nil 100)))
 
 (defun take-picture ()
   (perform (desig:a motion (to take-picture))))
+
+(defun sherpa-search (?object ?area)
+  (format t "search for ~a at ~a~%" ?object ?area)
+  (cpl:pursue
+    (cpl:seq
+      (perform (desig:an action (to scan) (area ?area)))
+      (helicopter:say (format nil "Blue Wasp FOUND ~a." ?object))
+      (perform (desig:an action (to take-picture))))
+    (perform (desig:an action (to look-for) (object ?object)))))
